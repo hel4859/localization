@@ -849,7 +849,6 @@ int main(int argc, char** argv)
           transform[5] += matX.at<float>(5, 0);
 
            //std::cout<<"matX:"<<matX<<std::endl;
-            //std::cout<<"transform[1]:"<<transform[1]<<std::endl;
           for(int i=0; i<6; i++){
             if(isnan(transform[i]))//如果有异常值，去除
               transform[i]=0;

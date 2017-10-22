@@ -45,7 +45,7 @@
 #include <sensor_msgs/PointCloud2.h>
 #include <tf/transform_datatypes.h>
 #include <tf/transform_broadcaster.h>
-
+#include <iostream>
 const float scanPeriod = 0.1;
 
 const int skipFrameNum = 1;
@@ -82,11 +82,11 @@ int laserCloudCornerLastNum;
 int laserCloudSurfLastNum;
 
 int pointSelCornerInd[40000];
-float pointSearchCornerInd1[40000];
+float pointSearchCornerInd1[40000];//两个数组储存边角点最近两个点
 float pointSearchCornerInd2[40000];
 
 int pointSelSurfInd[40000];
-float pointSearchSurfInd1[40000];
+float pointSearchSurfInd1[40000];//储存平面点最近的三个点
 float pointSearchSurfInd2[40000];
 float pointSearchSurfInd3[40000];
 
@@ -100,7 +100,8 @@ float imuVeloFromStartX = 0, imuVeloFromStartY = 0, imuVeloFromStartZ = 0;
 
 void TransformToStart(PointType const * const pi, PointType * const po)
 {
-  float s = 10 * (pi->intensity - int(pi->intensity));
+  float s = 10 * (pi->intensity - int(pi->intensity));//这样一圈点的百分数
+    // 感觉用于拟合transform，论文里的公式（4）
 
   float rx = s * transform[0];
   float ry = s * transform[1];
@@ -253,26 +254,26 @@ void PluginIMURotation(float bcx, float bcy, float bcz, float blx, float bly, fl
   acz = atan2(srzcrx / cos(acx), crzcrx / cos(acx));
 }
 
-void AccumulateRotation(float cx, float cy, float cz, float lx, float ly, float lz, 
+void AccumulateRotation(float cx, float cy, float cz, float lx, float ly, float lz,
                         float &ox, float &oy, float &oz)
 {
-  float srx = cos(lx)*cos(cx)*sin(ly)*sin(cz) - cos(cx)*cos(cz)*sin(lx) - cos(lx)*cos(ly)*sin(cx);
-  ox = -asin(srx);
+    float srx = cos(lx)*cos(cx)*sin(ly)*sin(cz) - cos(cx)*cos(cz)*sin(lx) - cos(lx)*cos(ly)*sin(cx);
+    ox = -asin(srx);
 
-  float srycrx = sin(lx)*(cos(cy)*sin(cz) - cos(cz)*sin(cx)*sin(cy)) + cos(lx)*sin(ly)*(cos(cy)*cos(cz) 
-               + sin(cx)*sin(cy)*sin(cz)) + cos(lx)*cos(ly)*cos(cx)*sin(cy);
-  float crycrx = cos(lx)*cos(ly)*cos(cx)*cos(cy) - cos(lx)*sin(ly)*(cos(cz)*sin(cy) 
-               - cos(cy)*sin(cx)*sin(cz)) - sin(lx)*(sin(cy)*sin(cz) + cos(cy)*cos(cz)*sin(cx));
-  oy = atan2(srycrx / cos(ox), crycrx / cos(ox));
+    float srycrx = sin(lx)*(cos(cy)*sin(cz) - cos(cz)*sin(cx)*sin(cy)) + cos(lx)*sin(ly)*(cos(cy)*cos(cz)
+                                                                                          + sin(cx)*sin(cy)*sin(cz)) + cos(lx)*cos(ly)*cos(cx)*sin(cy);
+    float crycrx = cos(lx)*cos(ly)*cos(cx)*cos(cy) - cos(lx)*sin(ly)*(cos(cz)*sin(cy)
+                                                                      - cos(cy)*sin(cx)*sin(cz)) - sin(lx)*(sin(cy)*sin(cz) + cos(cy)*cos(cz)*sin(cx));
+    oy = atan2(srycrx / cos(ox), crycrx / cos(ox));
 
-  float srzcrx = sin(cx)*(cos(lz)*sin(ly) - cos(ly)*sin(lx)*sin(lz)) + cos(cx)*sin(cz)*(cos(ly)*cos(lz) 
-               + sin(lx)*sin(ly)*sin(lz)) + cos(lx)*cos(cx)*cos(cz)*sin(lz);
-  float crzcrx = cos(lx)*cos(lz)*cos(cx)*cos(cz) - cos(cx)*sin(cz)*(cos(ly)*sin(lz) 
-               - cos(lz)*sin(lx)*sin(ly)) - sin(cx)*(sin(ly)*sin(lz) + cos(ly)*cos(lz)*sin(lx));
-  oz = atan2(srzcrx / cos(ox), crzcrx / cos(ox));
+    float srzcrx = sin(cx)*(cos(lz)*sin(ly) - cos(ly)*sin(lx)*sin(lz)) + cos(cx)*sin(cz)*(cos(ly)*cos(lz)
+                                                                                          + sin(lx)*sin(ly)*sin(lz)) + cos(lx)*cos(cx)*cos(cz)*sin(lz);
+    float crzcrx = cos(lx)*cos(lz)*cos(cx)*cos(cz) - cos(cx)*sin(cz)*(cos(ly)*sin(lz)
+                                                                      - cos(lz)*sin(lx)*sin(ly)) - sin(cx)*(sin(ly)*sin(lz) + cos(ly)*cos(lz)*sin(lx));
+    oz = atan2(srzcrx / cos(ox), crzcrx / cos(ox));
 }
 
-void laserCloudSharpHandler(const sensor_msgs::PointCloud2ConstPtr& cornerPointsSharp2)
+void laserCloudSharpHandler(const sensor_msgs::PointCloud2ConstPtr& cornerPointsSharp2)//去除离群点
 {
   timeCornerPointsSharp = cornerPointsSharp2->header.stamp.toSec();
 
@@ -360,33 +361,33 @@ int main(int argc, char** argv)
   ros::NodeHandle nh;
 
   ros::Subscriber subCornerPointsSharp = nh.subscribe<sensor_msgs::PointCloud2>
-                                         ("/laser_cloud_sharp", 2, laserCloudSharpHandler);
+                                         ("/laser_cloud_sharp", 2, laserCloudSharpHandler);//边角点
 
   ros::Subscriber subCornerPointsLessSharp = nh.subscribe<sensor_msgs::PointCloud2>
-                                             ("/laser_cloud_less_sharp", 2, laserCloudLessSharpHandler);
+                                             ("/laser_cloud_less_sharp", 2, laserCloudLessSharpHandler);//次边角点
 
   ros::Subscriber subSurfPointsFlat = nh.subscribe<sensor_msgs::PointCloud2>
-                                      ("/laser_cloud_flat", 2, laserCloudFlatHandler);
+                                      ("/laser_cloud_flat", 2, laserCloudFlatHandler);//平面点
 
   ros::Subscriber subSurfPointsLessFlat = nh.subscribe<sensor_msgs::PointCloud2>
-                                          ("/laser_cloud_less_flat", 2, laserCloudLessFlatHandler);
+                                          ("/laser_cloud_less_flat", 2, laserCloudLessFlatHandler);//次平面点
 
   ros::Subscriber subLaserCloudFullRes = nh.subscribe<sensor_msgs::PointCloud2> 
-                                         ("/velodyne_cloud_2", 2, laserCloudFullResHandler);
+                                         ("/velodyne_cloud_2", 2, laserCloudFullResHandler);//原始点云
 
   ros::Subscriber subImuTrans = nh.subscribe<sensor_msgs::PointCloud2> 
-                                ("/imu_trans", 5, imuTransHandler);
+                                ("/imu_trans", 5, imuTransHandler);//惯导数据
 
   ros::Publisher pubLaserCloudCornerLast = nh.advertise<sensor_msgs::PointCloud2>
-                                           ("/laser_cloud_corner_last", 2);
+                                           ("/laser_cloud_corner_last", 2);//上一次的边角点的点云
 
   ros::Publisher pubLaserCloudSurfLast = nh.advertise<sensor_msgs::PointCloud2>
-                                         ("/laser_cloud_surf_last", 2);
+                                         ("/laser_cloud_surf_last", 2);//上一次平面点的点云
 
   ros::Publisher pubLaserCloudFullRes = nh.advertise<sensor_msgs::PointCloud2> 
                                         ("/velodyne_cloud_3", 2);
 
-  ros::Publisher pubLaserOdometry = nh.advertise<nav_msgs::Odometry> ("/laser_odom_to_init", 5);
+  ros::Publisher pubLaserOdometry = nh.advertise<nav_msgs::Odometry> ("/laser_odom_to_init", 5);//雷达里程计最终数据
   nav_msgs::Odometry laserOdometry;
   laserOdometry.header.frame_id = "/camera_init";
   laserOdometry.child_frame_id = "/laser_odom";
@@ -423,18 +424,22 @@ int main(int argc, char** argv)
       newSurfPointsLessFlat = false;
       newLaserCloudFullRes = false;
       newImuTrans = false;
-
-      if (!systemInited) {
+     // std::cout<<"before_cornerpoint:"<<cornerPointsLessSharp->size() <<std::endl;
+     // std::cout<<"before_cornerlast:"<<laserCloudCornerLast->size() <<std::endl;
+      if (!systemInited) {//如果系统没有初始化，创建kd-tree搜索，同时对header进行初始化。
         pcl::PointCloud<PointType>::Ptr laserCloudTemp = cornerPointsLessSharp;
+        //交换laserCloudCornerLast和cornerPointsLessSharp的值
         cornerPointsLessSharp = laserCloudCornerLast;
         laserCloudCornerLast = laserCloudTemp;
-
+       // std::cout<<"after_cornerpoint:"<<cornerPointsLessSharp->size() <<std::endl;
+         // std::cout<<"after_cornerlast:"<<laserCloudCornerLast->size() <<std::endl;
+         //交换laserCloudSurfLast和surfPointsLessFlat的值
         laserCloudTemp = surfPointsLessFlat;
         surfPointsLessFlat = laserCloudSurfLast;
         laserCloudSurfLast = laserCloudTemp;
 
-        kdtreeCornerLast->setInputCloud(laserCloudCornerLast);
-        kdtreeSurfLast->setInputCloud(laserCloudSurfLast);
+        kdtreeCornerLast->setInputCloud(laserCloudCornerLast);//kdtreeCornerLast用于邻域搜索边角点特征
+        kdtreeSurfLast->setInputCloud(laserCloudSurfLast);//kdtreeSurfLast用于邻域搜索面特征
 
         sensor_msgs::PointCloud2 laserCloudCornerLast2;
         pcl::toROSMsg(*laserCloudCornerLast, laserCloudCornerLast2);
@@ -461,28 +466,39 @@ int main(int argc, char** argv)
 
       if (laserCloudCornerLastNum > 10 && laserCloudSurfLastNum > 100) {
         std::vector<int> indices;
-        pcl::removeNaNFromPointCloud(*cornerPointsSharp,*cornerPointsSharp, indices);
-        int cornerPointsSharpNum = cornerPointsSharp->points.size();
-        int surfPointsFlatNum = surfPointsFlat->points.size();
-        for (int iterCount = 0; iterCount < 25; iterCount++) {
+        pcl::removeNaNFromPointCloud(*cornerPointsSharp,*cornerPointsSharp, indices);//去除离群点
+        int cornerPointsSharpNum = cornerPointsSharp->points.size();//每一次边角点的个数
+        int surfPointsFlatNum = surfPointsFlat->points.size();//每一次平面点的个数
+        for (int iterCount = 0; iterCount < 25; iterCount++) {//迭代次数，感觉可以改大！！
           laserCloudOri->clear();
           coeffSel->clear();
 
           for (int i = 0; i < cornerPointsSharpNum; i++) {
             TransformToStart(&cornerPointsSharp->points[i], &pointSel);
+              //没有惯导的情况下，第一次等于cornerPointSharp的值
+              //随后随着transform进行更新其坐标位置！！！
+              //可以看做是将前一帧点云进行位姿变换
 
-            if (iterCount % 5 == 0) {
+            if (iterCount % 5 == 0) {//每五次迭代找一次最近点
               std::vector<int> indices;
               pcl::removeNaNFromPointCloud(*laserCloudCornerLast,*laserCloudCornerLast, indices);
               kdtreeCornerLast->nearestKSearch(pointSel, 1, pointSearchInd, pointSearchSqDis);
+              //第一次等于cornerPointSharp的值，1代表搜索最近的一个点
               int closestPointInd = -1, minPointInd2 = -1;
               if (pointSearchSqDis[0] < 25) {
                 closestPointInd = pointSearchInd[0];
                 int closestPointScan = int(laserCloudCornerLast->points[closestPointInd].intensity);
+                  //输出对应最近点的点云线的序列
+                //std::cout<<"closestpointscan:"<<closestPointScan<<std::endl;
 
+                  /**
+                   * 找到最近点之后，在最近点附近的6根激光雷达线束的点云内找第二个最近点，
+                   * 是在找到的第一个最近那帧点云里面找
+                   */
                 float pointSqDis, minPointSqDis2 = 25;
                 for (int j = closestPointInd + 1; j < cornerPointsSharpNum; j++) {
                   if (int(laserCloudCornerLast->points[j].intensity) > closestPointScan + 2.5) {
+                      //不考虑比第一个最近点大3以上的线束
                     break;
                   }
 
@@ -521,8 +537,8 @@ int main(int argc, char** argv)
                 }
               }
 
-              pointSearchCornerInd1[i] = closestPointInd;
-              pointSearchCornerInd2[i] = minPointInd2;
+              pointSearchCornerInd1[i] = closestPointInd;//第一个最近点
+              pointSearchCornerInd2[i] = minPointInd2;//第二个最近点
             }
 
             if (pointSearchCornerInd2[i] >= 0) {
@@ -539,30 +555,40 @@ int main(int argc, char** argv)
               float y2 = tripod2.y;
               float z2 = tripod2.z;
 
+                /**
+                 * 向量叉乘的计算公式 （x0,y0,z0）,(x1,y1,z1)
+                 * y1*z2-y2*z1,z1*x2-z2*x1,x1*y2-x2*y1
+                 */
               float a012 = sqrt(((x0 - x1)*(y0 - y2) - (x0 - x2)*(y0 - y1))
                          * ((x0 - x1)*(y0 - y2) - (x0 - x2)*(y0 - y1)) 
                          + ((x0 - x1)*(z0 - z2) - (x0 - x2)*(z0 - z1))
                          * ((x0 - x1)*(z0 - z2) - (x0 - x2)*(z0 - z1)) 
                          + ((y0 - y1)*(z0 - z2) - (y0 - y2)*(z0 - z1))
-                         * ((y0 - y1)*(z0 - z2) - (y0 - y2)*(z0 - z1)));
+                         * ((y0 - y1)*(z0 - z2) - (y0 - y2)*(z0 - z1)));//对应论文中d的分子。
 
               float l12 = sqrt((x1 - x2)*(x1 - x2) + (y1 - y2)*(y1 - y2) + (z1 - z2)*(z1 - z2));
+                //|x(k,j)-x(k,l)|
 
               float la = ((y1 - y2)*((x0 - x1)*(y0 - y2) - (x0 - x2)*(y0 - y1)) 
                        + (z1 - z2)*((x0 - x1)*(z0 - z2) - (x0 - x2)*(z0 - z1))) / a012 / l12;
 
+               //求偏导，最终要转化为对transform的偏导，手推的公式
+                //la 是ld2对x(k+1,i)中的x的偏导
               float lb = -((x1 - x2)*((x0 - x1)*(y0 - y2) - (x0 - x2)*(y0 - y1)) 
                        - (z1 - z2)*((y0 - y1)*(z0 - z2) - (y0 - y2)*(z0 - z1))) / a012 / l12;
-
-              float lc = -((x1 - x2)*((x0 - x1)*(z0 - z2) - (x0 - x2)*(z0 - z1)) 
+                //lb 是ld2对x(k+1,i)中的y的偏导
+              float lc = -((x1 + x2)*((x0 - x1)*(z0 - z2) - (x0 - x2)*(z0 - z1))
                        + (y1 - y2)*((y0 - y1)*(z0 - z2) - (y0 - y2)*(z0 - z1))) / a012 / l12;
-
-              float ld2 = a012 / l12;
+                //lc 是ld2对x(k+1,i)中的z的偏导
+              float ld2 = a012 / l12;//边角点的d
 
               pointProj = pointSel;
+                //pointProj是ld2对（x，y，z）的偏导
               pointProj.x -= la * ld2;
               pointProj.y -= lb * ld2;
               pointProj.z -= lc * ld2;
+                //std::cout<<"ld2:"<<ld2<<std::endl;
+                //std::cout<<"pointProj:"<<sqrt(pointProj.x*pointProj.x+pointProj.y*pointProj.y+pointProj.z *pointProj.z )<<std::endl;
 
               float s = 1;
               if (iterCount >= 5) {
@@ -572,17 +598,20 @@ int main(int argc, char** argv)
               coeff.x = s * la;
               coeff.y = s * lb;
               coeff.z = s * lc;
-              coeff.intensity = s * ld2;
+              coeff.intensity = s * ld2;//距离值
 
-              if (s > 0.1 && ld2 != 0) {
-                laserCloudOri->push_back(cornerPointsSharp->points[i]);
+              if (s > 0.1 && ld2 != 0) {//当ld2不为0时，将所有的点
+                laserCloudOri->push_back(cornerPointsSharp->points[i]);//对应的关键点位置
+                  //std::cout<<"s:"<<s<<std::endl;
+                  //std::cout<<"ld2:"<<ld2<<std::endl;
+                  //std::cout<<cornerPointsSharp->points[i]<<std::endl;
                 coeffSel->push_back(coeff);
               }
             }
           }
 
           for (int i = 0; i < surfPointsFlatNum; i++) {
-            TransformToStart(&surfPointsFlat->points[i], &pointSel);
+            TransformToStart(&surfPointsFlat->points[i], &pointSel);//没有惯导的情况下第一次就等于surf
 
             if (iterCount % 5 == 0) {
               kdtreeSurfLast->nearestKSearch(pointSel, 1, pointSearchInd, pointSearchSqDis);
@@ -686,29 +715,30 @@ int main(int argc, char** argv)
 
               if (s > 0.1 && pd2 != 0) {
                 laserCloudOri->push_back(surfPointsFlat->points[i]);
+                  //std::cout<<i<<":"<<laserCloudOri->size()<<std::endl;
                 coeffSel->push_back(coeff);
               }
             }
           }
 
-          int pointSelNum = laserCloudOri->points.size();
+          int pointSelNum = laserCloudOri->points.size();//每一帧所有符合要求的，用于计算的特征点
           if (pointSelNum < 10) {
             continue;
           }
 
           cv::Mat matA(pointSelNum, 6, CV_32F, cv::Scalar::all(0));
-          cv::Mat matAt(6, pointSelNum, CV_32F, cv::Scalar::all(0));
+          cv::Mat matAt(6, pointSelNum, CV_32F, cv::Scalar::all(0));//储存转置后的位姿值
           cv::Mat matAtA(6, 6, CV_32F, cv::Scalar::all(0));
           cv::Mat matB(pointSelNum, 1, CV_32F, cv::Scalar::all(0));
           cv::Mat matAtB(6, 1, CV_32F, cv::Scalar::all(0));
           cv::Mat matX(6, 1, CV_32F, cv::Scalar::all(0));
           for (int i = 0; i < pointSelNum; i++) {
-            pointOri = laserCloudOri->points[i];
-            coeff = coeffSel->points[i];
+            pointOri = laserCloudOri->points[i];//对应的k+1的位置点
+            coeff = coeffSel->points[i];//对应的偏导，对xyz
 
             float s = 1;
 
-            float srx = sin(s * transform[0]);
+            float srx = sin(s * transform[0]);//每一次迭代中，transform的值都是matA的累加值
             float crx = cos(s * transform[0]);
             float sry = sin(s * transform[1]);
             float cry = cos(s * transform[1]);
@@ -717,7 +747,9 @@ int main(int argc, char** argv)
             float tx = s * transform[3];
             float ty = s * transform[4];
             float tz = s * transform[5];
-
+              /**
+               * d对（x，y，z）的偏导乘以（x,y,z）对transform求偏导数
+               */
             float arx = (-s*crx*sry*srz*pointOri.x + s*crx*crz*sry*pointOri.y + s*srx*sry*pointOri.z 
                       + s*tx*crx*sry*srz - s*ty*crx*crz*sry - s*tz*srx*sry) * coeff.x
                       + (s*srx*srz*pointOri.x - s*crz*srx*pointOri.y + s*crx*pointOri.z
@@ -749,27 +781,37 @@ int main(int argc, char** argv)
   
             float atz = s*crx*sry * coeff.x - s*srx * coeff.y - s*crx*cry * coeff.z;
 
-            float d2 = coeff.intensity;
+            float d2 = coeff.intensity;//点到直线的距离值
 
+
+            //matA中储存着j=df/d(transform)
             matA.at<float>(i, 0) = arx;
             matA.at<float>(i, 1) = ary;
             matA.at<float>(i, 2) = arz;
             matA.at<float>(i, 3) = atx;
             matA.at<float>(i, 4) = aty;
-            matA.at<float>(i, 5) = atz;
+            matA.at<float>(i, 5) = atz;//每行储存一个关键点的位姿的六个数
             matB.at<float>(i, 0) = -0.05 * d2;
           }
-          cv::transpose(matA, matAt);
-          matAtA = matAt * matA;
-          matAtB = matAt * matB;
+          cv::transpose(matA, matAt);//将matA转置生成matAt
+          matAtA = matAt * matA;//6×6 J的转置乘以J
+          matAtB = matAt * matB;//6×1的矩阵6×n n×1
           cv::solve(matAtA, matAtB, matX, cv::DECOMP_QR);
+            //使用了QR分解，求解 (matAtA)x=matAtB
+            //求解的x即matX是对应的位姿变换矩阵tansform
 
           if (iterCount == 0) {
             cv::Mat matE(1, 6, CV_32F, cv::Scalar::all(0));
             cv::Mat matV(6, 6, CV_32F, cv::Scalar::all(0));
             cv::Mat matV2(6, 6, CV_32F, cv::Scalar::all(0));
-
-            cv::eigen(matAtA, matE, matV);
+              // std::cout<<"matAtA1:"<<matAtA<<std::endl;
+             // std::cout<<"matE1:"<<matE<<std::endl;
+             // std::cout<<"matV1:"<<matV<<std::endl;
+            cv::eigen(matAtA, matE, matV);//找到matAtA的特征值向量和特征向量矩阵
+             // std::cout<<"matAtA2:"<<matAtA<<std::endl;
+//           /  std::cout<<"matE2:"<<matE<<std::endl;
+             //std::cout<<"matV2:"<<matV<<std::endl;
+             // std::cout<<"eigen:"<<cv::eigen(matAtA, matE, matV)<<std::endl;
             matV.copyTo(matV2);
 
             isDegenerate = false;
@@ -777,22 +819,28 @@ int main(int argc, char** argv)
             for (int i = 5; i >= 0; i--) {
               if (matE.at<float>(0, i) < eignThre[i]) {
                 for (int j = 0; j < 6; j++) {
-                  matV2.at<float>(i, j) = 0;
+                  matV2.at<float>(i, j) = 0;//如果特征值小于10，则把特征向量哪一行全都置为0
                 }
                 isDegenerate = true;
               } else {
                 break;
               }
             }
-            matP = matV.inv() * matV2;
+            matP = matV.inv() * matV2;//矩阵求逆,将特征值小于10的值置为0
+           // std::cout<<"matP:"<<matP<<std::endl;
           }
 
           if (isDegenerate) {
             cv::Mat matX2(6, 1, CV_32F, cv::Scalar::all(0));
             matX.copyTo(matX2);
-            matX = matP * matX2;
-          }
+            matX = matP * matX2;//矩阵求逆,将特征值小于10的值置为0
 
+          }
+            //std::cout<<"matX:"<<matX<<std::endl;
+            //transform这里先是用于计算deltaR和deltaT
+            // 如果满足角度小于0.1度，位置值小于0.01m则视为收敛
+            //std::cout<<"transform:"<<*transform<<std::endl;
+            //前三个值为角度，后三个值为位移值
           transform[0] += matX.at<float>(0, 0);
           transform[1] += matX.at<float>(1, 0);
           transform[2] += matX.at<float>(2, 0);
@@ -800,8 +848,9 @@ int main(int argc, char** argv)
           transform[4] += matX.at<float>(4, 0);
           transform[5] += matX.at<float>(5, 0);
 
+           //std::cout<<"matX:"<<matX<<std::endl;
           for(int i=0; i<6; i++){
-            if(isnan(transform[i]))
+            if(isnan(transform[i]))//如果有异常值，去除
               transform[i]=0;
           }
           float deltaR = sqrt(
@@ -814,7 +863,7 @@ int main(int argc, char** argv)
                               pow(matX.at<float>(5, 0) * 100, 2));
 
           if (deltaR < 0.1 && deltaT < 0.1) {
-            break;
+            break;//如果角度值小于0.1，位移值小于0.01，退出迭代
           }
         }
       }
@@ -903,19 +952,19 @@ int main(int argc, char** argv)
         sensor_msgs::PointCloud2 laserCloudCornerLast2;
         pcl::toROSMsg(*laserCloudCornerLast, laserCloudCornerLast2);
         laserCloudCornerLast2.header.stamp = ros::Time().fromSec(timeSurfPointsLessFlat);
-        laserCloudCornerLast2.header.frame_id = "/camera";
+        laserCloudCornerLast2.header.frame_id = "camera";
         pubLaserCloudCornerLast.publish(laserCloudCornerLast2);
 
         sensor_msgs::PointCloud2 laserCloudSurfLast2;
         pcl::toROSMsg(*laserCloudSurfLast, laserCloudSurfLast2);
         laserCloudSurfLast2.header.stamp = ros::Time().fromSec(timeSurfPointsLessFlat);
-        laserCloudSurfLast2.header.frame_id = "/camera";
+        laserCloudSurfLast2.header.frame_id = "camera";
         pubLaserCloudSurfLast.publish(laserCloudSurfLast2);
 
         sensor_msgs::PointCloud2 laserCloudFullRes3;
         pcl::toROSMsg(*laserCloudFullRes, laserCloudFullRes3);
         laserCloudFullRes3.header.stamp = ros::Time().fromSec(timeSurfPointsLessFlat);
-        laserCloudFullRes3.header.frame_id = "/camera";
+        laserCloudFullRes3.header.frame_id = "camera";
         pubLaserCloudFullRes.publish(laserCloudFullRes3);
       }
     }
@@ -926,4 +975,3 @@ int main(int argc, char** argv)
 
   return 0;
 }
-
