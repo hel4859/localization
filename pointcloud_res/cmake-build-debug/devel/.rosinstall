@@ -1,0 +1,2 @@
+- setup-file:
+    local-name: /home/hl/helei_ws/src/pointcloud_res/cmake-build-debug/devel/setup.sh

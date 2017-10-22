@@ -1,0 +1,8 @@
+prefix=/usr/local
+
+Name: geodesy
+Description: Description of geodesy
+Version: 0.5.2
+Cflags: -I/usr/local/include
+Libs: -L/usr/local/lib -lgeoconv
+Requires: geographic_msgs geometry_msgs sensor_msgs tf unique_id uuid_msgs

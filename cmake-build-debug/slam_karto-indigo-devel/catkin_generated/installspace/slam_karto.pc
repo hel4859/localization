@@ -1,0 +1,8 @@
+prefix=/usr/local
+
+Name: slam_karto
+Description: Description of slam_karto
+Version: 0.7.3
+Cflags: 
+Libs: -L/usr/local/lib 
+Requires: 

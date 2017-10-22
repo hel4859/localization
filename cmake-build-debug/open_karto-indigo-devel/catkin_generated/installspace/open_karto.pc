@@ -1,0 +1,8 @@
+prefix=/usr/local
+
+Name: open_karto
+Description: Description of open_karto
+Version: 1.1.4
+Cflags: -I/usr/local/include -I/usr/include
+Libs: -L/usr/local/lib -lkarto -l:/usr/lib/x86_64-linux-gnu/libboost_thread.so -l:/usr/lib/x86_64-linux-gnu/libboost_chrono.so -l:/usr/lib/x86_64-linux-gnu/libboost_system.so -l:/usr/lib/x86_64-linux-gnu/libboost_date_time.so -l:/usr/lib/x86_64-linux-gnu/libboost_atomic.so
+Requires: 

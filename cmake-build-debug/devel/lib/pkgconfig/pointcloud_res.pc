@@ -1,0 +1,8 @@
+prefix=/home/hl/helei_ws/src/cmake-build-debug/devel
+
+Name: pointcloud_res
+Description: Description of pointcloud_res
+Version: 0.0.0
+Cflags: 
+Libs: -L/home/hl/helei_ws/src/cmake-build-debug/devel/lib 
+Requires: 

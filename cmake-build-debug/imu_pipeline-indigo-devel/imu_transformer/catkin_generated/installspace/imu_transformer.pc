@@ -1,0 +1,8 @@
+prefix=/usr/local
+
+Name: imu_transformer
+Description: Description of imu_transformer
+Version: 0.2.2
+Cflags: -I/usr/local/include
+Libs: -L/usr/local/lib -limu_transformer_nodelet
+Requires: roscpp message_filters nodelet sensor_msgs tf2 tf2_ros geometry_msgs

@@ -1,0 +1,8 @@
+prefix=/home/hl/helei_ws/src/cmake-build-debug/devel
+
+Name: imu_transformer
+Description: Description of imu_transformer
+Version: 0.2.2
+Cflags: -I/home/hl/helei_ws/src/imu_pipeline-indigo-devel/imu_transformer/include
+Libs: -L/home/hl/helei_ws/src/cmake-build-debug/devel/lib -limu_transformer_nodelet
+Requires: roscpp message_filters nodelet sensor_msgs tf2 tf2_ros geometry_msgs

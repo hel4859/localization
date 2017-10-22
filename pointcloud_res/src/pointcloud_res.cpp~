@@ -1,0 +1,69 @@
+#include <nav_msgs/Odometry.h>
+#include <pcl/point_types.h>
+#include <pcl/filters/voxel_grid.h>
+#include <pcl/kdtree/kdtree_flann.h>
+#include <pcl_conversions/pcl_conversions.h>
+#include <ros/ros.h>
+#include <sensor_msgs/Imu.h>
+#include <sensor_msgs/PointCloud2.h>
+#include <tf/transform_datatypes.h>
+#include <tf/transform_broadcaster.h>
+#include <iostream>
+#include <pcl/point_cloud.h>
+#include <pcl/common/transforms.h>
+double time_front= 0;
+double time_back=0;
+bool new_front= false;
+bool new_back= false;
+ros::Publisher pubLaser;
+typedef pcl::PointXYZ PointType;
+pcl::PointCloud<PointType>::Ptr front_pointCloud(new pcl::PointCloud<PointType>());
+pcl::PointCloud<PointType>::Ptr back_pointCloud(new pcl::PointCloud<PointType>());
+pcl::PointCloud<PointType>::Ptr all_pointCloud(new pcl::PointCloud<PointType>());
+void front_callback(const sensor_msgs::PointCloud2ConstPtr& front_point)//去除前面的点云的离群点
+{
+    time_front = front_point->header.stamp.toSec();
+    front_pointCloud->clear();
+    pcl::fromROSMsg(*front_point, *front_pointCloud);
+    std::vector<int> indices;
+    pcl::removeNaNFromPointCloud(*front_pointCloud,*front_pointCloud, indices);
+    new_front = true;
+    Eigen::Affine3f transform_1 = Eigen::Affine3f::Identity();
+    all_pointCloud->clear();
+
+    transform_1.translation() <<0.0,4.4,1.8;
+    //   transform_1.rotate(Eigen::AngleAxisf (1.570796327, Eigen::Vector3f::UnitY())
+    //    *Eigen::AngleAxisf (0.503598767, Eigen::Vector3f::UnitX())
+    //    *Eigen::AngleAxisf (0.017453292, Eigen::Vector3f::UnitZ()));
+    pcl::transformPointCloud(*front_pointCloud, *front_pointCloud,transform_1);
+    //std::cout<<"transform:"<<transform1<<std::endl;
+    sensor_msgs::PointCloud2 output;
+    pcl::toROSMsg(*front_pointCloud, output);
+    pubLaser.publish(output);
+}
+void rear_callback(const sensor_msgs::PointCloud2ConstPtr& back_point)//去除后面的点云的离群点
+{
+    time_back = back_point->header.stamp.toSec();
+    back_pointCloud->clear();
+    pcl::fromROSMsg(*back_point, *back_pointCloud);
+    std::vector<int> indices;
+    pcl::removeNaNFromPointCloud(*back_pointCloud,*back_pointCloud, indices);
+    new_back = true;
+}
+int main(int argc, char** argv)
+{
+    ros::init(argc, argv, "pointcloud_res");
+    ros::NodeHandle nh;
+    //front_pointCloud->header.frame_id = "map";
+    ros::Publisher pubLaser = nh.advertise<sensor_msgs::PointCloud2>
+            ("velodyne_points", 2);
+    ros::Subscriber sub_front = nh.subscribe("/front/velodyne_points",2,front_callback);
+    ros::Subscriber sub_back=nh.subscribe("/rear/velodyne_points",2,rear_callback);
+    //使用多线程
+    ros::MultiThreadedSpinner spinner(0); // Use all threads
+    spinner.spin(); // spin() will not return until the node has been shutdow
+    //ros::Rate rate(10);
+    //bool status = ros::ok();
+
+    return 0;
+}

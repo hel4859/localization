@@ -1,0 +1,1 @@
+/usr/bin/c++  -std=c++14 -Wall -O3 -pthread -g  -rdynamic CMakeFiles/geom_dprimitives-test.dir/test/core/geometry_discrete_primitives_test.cpp.o  -o ../devel/lib/slam_fmwk/geom_dprimitives-test  -L/home/hl/helei_ws/src/cmake-build-debug/gtest -Wl,-rpath,/home/hl/helei_ws/src/cmake-build-debug/gtest ../gtest/libgtest.so -lpthread 

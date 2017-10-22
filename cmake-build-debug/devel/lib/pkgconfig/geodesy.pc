@@ -1,0 +1,8 @@
+prefix=/home/hl/helei_ws/src/cmake-build-debug/devel
+
+Name: geodesy
+Description: Description of geodesy
+Version: 0.5.2
+Cflags: -I/home/hl/helei_ws/src/geographic_info-master/geodesy/include
+Libs: -L/home/hl/helei_ws/src/cmake-build-debug/devel/lib -lgeoconv
+Requires: geographic_msgs geometry_msgs sensor_msgs tf unique_id uuid_msgs

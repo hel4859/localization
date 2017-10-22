@@ -1,0 +1,8 @@
+prefix=/home/hl/helei_ws/src/cmake-build-debug/devel
+
+Name: geographic_msgs
+Description: Description of geographic_msgs
+Version: 0.5.2
+Cflags: -I/home/hl/helei_ws/src/cmake-build-debug/devel/include
+Libs: -L/home/hl/helei_ws/src/cmake-build-debug/devel/lib 
+Requires: message_runtime geometry_msgs uuid_msgs std_msgs
