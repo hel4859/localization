@@ -804,7 +804,7 @@ int main(int argc, char** argv)
             cv::Mat matE(1, 6, CV_32F, cv::Scalar::all(0));
             cv::Mat matV(6, 6, CV_32F, cv::Scalar::all(0));
             cv::Mat matV2(6, 6, CV_32F, cv::Scalar::all(0));
-              // std::cout<<"matAtA1:"<<matAtA<<std::endl;
+              
              // std::cout<<"matE1:"<<matE<<std::endl;
              // std::cout<<"matV1:"<<matV<<std::endl;
             cv::eigen(matAtA, matE, matV);//找到matAtA的特征值向量和特征向量矩阵

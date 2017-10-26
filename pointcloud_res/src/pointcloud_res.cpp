@@ -22,7 +22,21 @@ pcl::PointCloud<PointType>::Ptr front_pointCloud(new pcl::PointCloud<PointType>(
 pcl::PointCloud<PointType>::Ptr back_pointCloud(new pcl::PointCloud<PointType>());
 pcl::PointCloud<PointType>::Ptr all_pointCloud(new pcl::PointCloud<PointType>());
 pcl::PointCloud<PointType>::Ptr voxel_point(new pcl::PointCloud<PointType>());
+class A{
+public:
+    void front_callback(const sensor_msgs::PointCloud2ConstPtr& front_point)//去除前面的点云的离群点
+    {
 
+        }
+
+
+    };
+
+
+class B:public A
+{
+
+};
 
 inline Eigen::Matrix4f GetMatrixLH(double x,double y,double z,double w)
 {
@@ -123,8 +137,9 @@ int main(int argc, char** argv)
     all_pointCloud->header.frame_id = "map";
      pubLaser = nh.advertise<sensor_msgs::PointCloud2>
             ("velodyne_points", 2);
-    ros::Subscriber sub_front = nh.subscribe("/front/velodyne_points",2,front_callback);
-    ros::Subscriber sub_back=nh.subscribe("/rear/velodyne_points",2,rear_callback);
+    B a;
+    ros::Subscriber sub_front = nh.subscribe("/front/velodyne_points",2,&B::front_callback,& a);
+   // ros::Subscriber sub_back=nh.subscribe("/rear/velodyne_points",2,rear_callback);
     //使用多线程
     //ros::MultiThreadedSpinner spinner(0); // Use all threads
     //spinner.spin(); // spin() will not return until the node has been shutdow
