@@ -1,8 +1,0 @@
-prefix=/usr/local
-
-Name: pointcloud_res
-Description: Description of pointcloud_res
-Version: 0.0.0
-Cflags: 
-Libs: -L/usr/local/lib 
-Requires: 

@@ -68,17 +68,15 @@ install/strip/fast: preinstall/fast
 	/home/hl/下载/clion-2017.2.2/bin/cmake/bin/cmake -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
 .PHONY : install/strip/fast
 
-# Special rule for the target install/local
-install/local: preinstall
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing only the local directory..."
-	/home/hl/下载/clion-2017.2.2/bin/cmake/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
-.PHONY : install/local
+# Special rule for the target list_install_components
+list_install_components:
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Available install components are: \"Unspecified\""
+.PHONY : list_install_components
 
-# Special rule for the target install/local
-install/local/fast: preinstall/fast
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing only the local directory..."
-	/home/hl/下载/clion-2017.2.2/bin/cmake/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
-.PHONY : install/local/fast
+# Special rule for the target list_install_components
+list_install_components/fast: list_install_components
+
+.PHONY : list_install_components/fast
 
 # Special rule for the target install
 install: preinstall
@@ -92,26 +90,16 @@ install/fast: preinstall/fast
 	/home/hl/下载/clion-2017.2.2/bin/cmake/bin/cmake -P cmake_install.cmake
 .PHONY : install/fast
 
-# Special rule for the target list_install_components
-list_install_components:
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Available install components are: \"Unspecified\""
-.PHONY : list_install_components
+# Special rule for the target test
+test:
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running tests..."
+	/home/hl/下载/clion-2017.2.2/bin/cmake/bin/ctest --force-new-ctest-process $(ARGS)
+.PHONY : test
 
-# Special rule for the target list_install_components
-list_install_components/fast: list_install_components
+# Special rule for the target test
+test/fast: test
 
-.PHONY : list_install_components/fast
-
-# Special rule for the target rebuild_cache
-rebuild_cache:
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake to regenerate build system..."
-	/home/hl/下载/clion-2017.2.2/bin/cmake/bin/cmake -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
-.PHONY : rebuild_cache
-
-# Special rule for the target rebuild_cache
-rebuild_cache/fast: rebuild_cache
-
-.PHONY : rebuild_cache/fast
+.PHONY : test/fast
 
 # Special rule for the target edit_cache
 edit_cache:
@@ -124,16 +112,28 @@ edit_cache/fast: edit_cache
 
 .PHONY : edit_cache/fast
 
-# Special rule for the target test
-test:
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running tests..."
-	/home/hl/下载/clion-2017.2.2/bin/cmake/bin/ctest --force-new-ctest-process $(ARGS)
-.PHONY : test
+# Special rule for the target rebuild_cache
+rebuild_cache:
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake to regenerate build system..."
+	/home/hl/下载/clion-2017.2.2/bin/cmake/bin/cmake -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
+.PHONY : rebuild_cache
 
-# Special rule for the target test
-test/fast: test
+# Special rule for the target rebuild_cache
+rebuild_cache/fast: rebuild_cache
 
-.PHONY : test/fast
+.PHONY : rebuild_cache/fast
+
+# Special rule for the target install/local
+install/local: preinstall
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing only the local directory..."
+	/home/hl/下载/clion-2017.2.2/bin/cmake/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
+.PHONY : install/local
+
+# Special rule for the target install/local
+install/local/fast: preinstall/fast
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing only the local directory..."
+	/home/hl/下载/clion-2017.2.2/bin/cmake/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
+.PHONY : install/local/fast
 
 # The main all target
 all: cmake_check_build_system
@@ -168,6 +168,36 @@ depend:
 .PHONY : depend
 
 # Convenience name for target.
+slam_karto-indigo-devel/CMakeFiles/visualization_msgs_generate_messages_lisp.dir/rule:
+	cd /home/hl/helei_ws/src/cmake-build-debug && $(MAKE) -f CMakeFiles/Makefile2 slam_karto-indigo-devel/CMakeFiles/visualization_msgs_generate_messages_lisp.dir/rule
+.PHONY : slam_karto-indigo-devel/CMakeFiles/visualization_msgs_generate_messages_lisp.dir/rule
+
+# Convenience name for target.
+visualization_msgs_generate_messages_lisp: slam_karto-indigo-devel/CMakeFiles/visualization_msgs_generate_messages_lisp.dir/rule
+
+.PHONY : visualization_msgs_generate_messages_lisp
+
+# fast build rule for target.
+visualization_msgs_generate_messages_lisp/fast:
+	cd /home/hl/helei_ws/src/cmake-build-debug && $(MAKE) -f slam_karto-indigo-devel/CMakeFiles/visualization_msgs_generate_messages_lisp.dir/build.make slam_karto-indigo-devel/CMakeFiles/visualization_msgs_generate_messages_lisp.dir/build
+.PHONY : visualization_msgs_generate_messages_lisp/fast
+
+# Convenience name for target.
+slam_karto-indigo-devel/CMakeFiles/visualization_msgs_generate_messages_py.dir/rule:
+	cd /home/hl/helei_ws/src/cmake-build-debug && $(MAKE) -f CMakeFiles/Makefile2 slam_karto-indigo-devel/CMakeFiles/visualization_msgs_generate_messages_py.dir/rule
+.PHONY : slam_karto-indigo-devel/CMakeFiles/visualization_msgs_generate_messages_py.dir/rule
+
+# Convenience name for target.
+visualization_msgs_generate_messages_py: slam_karto-indigo-devel/CMakeFiles/visualization_msgs_generate_messages_py.dir/rule
+
+.PHONY : visualization_msgs_generate_messages_py
+
+# fast build rule for target.
+visualization_msgs_generate_messages_py/fast:
+	cd /home/hl/helei_ws/src/cmake-build-debug && $(MAKE) -f slam_karto-indigo-devel/CMakeFiles/visualization_msgs_generate_messages_py.dir/build.make slam_karto-indigo-devel/CMakeFiles/visualization_msgs_generate_messages_py.dir/build
+.PHONY : visualization_msgs_generate_messages_py/fast
+
+# Convenience name for target.
 slam_karto-indigo-devel/CMakeFiles/slam_karto.dir/rule:
 	cd /home/hl/helei_ws/src/cmake-build-debug && $(MAKE) -f CMakeFiles/Makefile2 slam_karto-indigo-devel/CMakeFiles/slam_karto.dir/rule
 .PHONY : slam_karto-indigo-devel/CMakeFiles/slam_karto.dir/rule
@@ -181,6 +211,21 @@ slam_karto: slam_karto-indigo-devel/CMakeFiles/slam_karto.dir/rule
 slam_karto/fast:
 	cd /home/hl/helei_ws/src/cmake-build-debug && $(MAKE) -f slam_karto-indigo-devel/CMakeFiles/slam_karto.dir/build.make slam_karto-indigo-devel/CMakeFiles/slam_karto.dir/build
 .PHONY : slam_karto/fast
+
+# Convenience name for target.
+slam_karto-indigo-devel/CMakeFiles/visualization_msgs_generate_messages_cpp.dir/rule:
+	cd /home/hl/helei_ws/src/cmake-build-debug && $(MAKE) -f CMakeFiles/Makefile2 slam_karto-indigo-devel/CMakeFiles/visualization_msgs_generate_messages_cpp.dir/rule
+.PHONY : slam_karto-indigo-devel/CMakeFiles/visualization_msgs_generate_messages_cpp.dir/rule
+
+# Convenience name for target.
+visualization_msgs_generate_messages_cpp: slam_karto-indigo-devel/CMakeFiles/visualization_msgs_generate_messages_cpp.dir/rule
+
+.PHONY : visualization_msgs_generate_messages_cpp
+
+# fast build rule for target.
+visualization_msgs_generate_messages_cpp/fast:
+	cd /home/hl/helei_ws/src/cmake-build-debug && $(MAKE) -f slam_karto-indigo-devel/CMakeFiles/visualization_msgs_generate_messages_cpp.dir/build.make slam_karto-indigo-devel/CMakeFiles/visualization_msgs_generate_messages_cpp.dir/build
+.PHONY : visualization_msgs_generate_messages_cpp/fast
 
 src/slam_karto.o: src/slam_karto.cpp.o
 
@@ -243,13 +288,16 @@ help:
 	@echo "... clean"
 	@echo "... depend"
 	@echo "... install/strip"
-	@echo "... install/local"
-	@echo "... install"
+	@echo "... visualization_msgs_generate_messages_lisp"
 	@echo "... list_install_components"
-	@echo "... rebuild_cache"
-	@echo "... edit_cache"
-	@echo "... test"
+	@echo "... install"
+	@echo "... visualization_msgs_generate_messages_py"
 	@echo "... slam_karto"
+	@echo "... test"
+	@echo "... edit_cache"
+	@echo "... visualization_msgs_generate_messages_cpp"
+	@echo "... rebuild_cache"
+	@echo "... install/local"
 	@echo "... src/slam_karto.o"
 	@echo "... src/slam_karto.i"
 	@echo "... src/slam_karto.s"

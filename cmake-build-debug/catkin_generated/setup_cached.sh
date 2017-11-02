@@ -8,7 +8,9 @@
 
 # modified environment variables
 export CMAKE_PREFIX_PATH="/home/hl/helei_ws/src/cmake-build-debug/devel:$CMAKE_PREFIX_PATH"
+export CPATH="/home/hl/helei_ws/src/cmake-build-debug/devel/include:$CPATH"
 export LD_LIBRARY_PATH="/home/hl/helei_ws/src/cmake-build-debug/devel/lib:/home/hl/blam-master/internal/devel/lib:/home/hl/helei_ws/devel/lib:/opt/ros/indigo/lib:/home/hl/下载/clion-2017.2.2/bin"
 export PKG_CONFIG_PATH="/home/hl/helei_ws/src/cmake-build-debug/devel/lib/pkgconfig:$PKG_CONFIG_PATH"
+export PYTHONPATH="/home/hl/helei_ws/src/cmake-build-debug/devel/lib/python2.7/dist-packages:$PYTHONPATH"
 export ROSLISP_PACKAGE_DIRECTORIES="/home/hl/helei_ws/src/cmake-build-debug/devel/share/common-lisp:$ROSLISP_PACKAGE_DIRECTORIES"
-export ROS_PACKAGE_PATH="/home/hl/helei_ws/src:$ROS_PACKAGE_PATH"
+export ROS_PACKAGE_PATH="/home/hl/helei_ws/src:/home/hl/blam-master/internal/src:/home/hl/helei_ws/src:/opt/ros/indigo/share:/opt/ros/indigo/stacks"

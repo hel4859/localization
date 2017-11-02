@@ -1,0 +1,26 @@
+<!-- Starts up all sim node -->
+<launch>
+	<node ns="hubing" pkg="controller" type="hubing_cal_speed" name="hubing_cal_speed">
+	<remap from="/hubing/can_frame" to="/can_frame"/>
+	</node>
+
+	<node ns="hubing" pkg="controller" type="hubing_velocity_decision" name="hubing_velocity_decision">
+	<remap from="/hubing/can_frame" to="/can_frame"/>
+	</node>
+
+	<node ns="hubing" pkg="ican" type="hubing_decoder" name="hubing_decoder">
+ 	<remap from="/hubing/can_frame" to="/can_frame"/>
+	</node>
+<!-- Starts up task-->
+	<node ns="hubing" pkg="navigation_task" type="hubing_task_analyzing" name="hubing_task_analyzing">
+	<remap from="/hubing/fix" to="/fix"/>
+	</node>
+	<!--		-->
+	<node ns="hubing" pkg="my_pcl_demo" type="intersection_detection" name="intersection_detection">
+	<remap from="/hubing/velodyne_points" to="/velodyne_points"/>
+	<remap from="/hubing/fix" to="/fix"/>
+	</node>
+
+	<!--<node pkg="intersection_detection" type="pointcloud2gridmap" name="pointcloud2gridmap"/> -->
+
+</launch>

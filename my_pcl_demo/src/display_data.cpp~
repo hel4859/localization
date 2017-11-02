@@ -1,0 +1,244 @@
+#include "display_data.h"
+#include"virtual_scan_type.h"
+#define Map_Size_max    50
+#include"math.h"
+#include"pcl_pointcloud.h"
+display_data_type::display_data_type()
+{
+//    win3D = mrpt::gui::CDisplayWindow3D::Create();
+    win3D.setWindowTitle("CyberTiggo_View");
+    win3D.resize(600, 600);
+    win3D.setCameraAzimuthDeg(270);//方向沿y轴由负方向向正方向看
+    win3D.setCameraElevationDeg(60);//俯角20°
+    win3D.setCameraPointingToPoint(0, 10, 0);//指向(0,10,0)点
+    win3D.setCameraZoom(100);
+
+//    win2D.axis(0,scan_point_num,0,Max_range + 10,false);
+//    win2D = mrpt::gui::CDisplayWindowPlots::Create();
+
+    groundPlane = mrpt::opengl::CGridPlaneXY::Create(//网格固定
+         -300,
+         300,
+         -300,
+         300,
+        0,5); //地平线网格间隔
+    groundPlane->setColor(0.0f, 0.0f, 0.0f);
+    groundPlane->setLineWidth(0.5);
+    virtual_scan_arrow = mrpt::opengl::CCylinder::Create(0.2,0.2,0.5);
+    virtual_scan_arrow->setColor(0.5,0.5,0.5);
+    axis = mrpt::opengl::CAxis::Create(0,0,0,2,4,2,0.25,3,false);
+    axis->setColor(mrpt::utils::TColorf(0,0,1,1));
+    suvModel = mrpt::opengl::CAssimpModel::Create();
+    suvModel->loadScene("/home/hubing/ros-project/hubing_ws/src/my_pcl_demo/xtrail.3ds");//suv model without detail
+    suvModel->setScale(0.004);//OriginSize=6000,TargetSize=4
+    suvModel->setColor(0.5, 0.44, 0.6);
+    suvModel->setPose(mrpt::poses::CPose3D(0, 0, 0.95, Pi, 0, HalfPi));
+
+    obj_scan = mrpt::opengl::CPlanarLaserScan::Create();
+    obj_gridMap = mrpt::opengl::CSetOfObjects::Create();
+    admissable_space_display = mrpt::opengl::CSetOfLines::Create();
+
+}
+void display_data_type::insert_axis()
+{
+    scene->insert(axis);
+}
+
+void display_data_type::insert_grid()
+{
+    scene->insert(groundPlane);
+}
+
+void display_data_type::insert_suvModel()
+{
+    scene->insert(suvModel);
+}
+void display_data_type::insert_scan_center_arrow()
+{
+    virtual_scan_arrow->setPose(mrpt::poses::CPose3D(virtual_scan.senser_pose.x(),virtual_scan.senser_pose.y(),0,0,0,0));
+    scene->insert(virtual_scan_arrow);
+}
+
+void display_data_type::insert_gridmap_local()
+{
+    obj_gridMap = mrpt::opengl::CSetOfObjects::Create();
+    virtual_scan.gridmap_local.getAs3DObject(obj_gridMap);
+    obj_gridMap->setLocation(0, 0, 0);
+    scene->insert(obj_gridMap);
+}
+
+void display_data_type::insert_scan_result()
+{
+    obj_scan = mrpt::opengl::CPlanarLaserScan::Create();
+    obj_scan->enableSurface(1);
+    obj_scan->setPointsWidth(3);
+    obj_scan->enableLine(false);
+    obj_scan->setColor(1, 0, 0);
+    obj_scan->setScan(virtual_scan.gridmap_virtual_scan);
+    obj_scan->setLocation(mrpt::math::TPoint3D(virtual_scan.curRobotPoseEst.x(),virtual_scan.curRobotPoseEst.y(),0.05));
+    scene->insert(obj_scan);
+}
+void display_data_type::insert_admissable_space()
+{
+    int i=0;
+    admissable_space_display = mrpt::opengl::CSetOfLines::Create();
+    float start_x,start_y,middle_x,middle_y,end_x,end_y;
+    float alpha=0.0;
+    float temp =0.0;
+    for(i=0;i<virtual_scan.admisbale_space.size();i++)
+    {
+        start_x = start_y = middle_x= middle_y=end_x = end_y =0.0;
+         alpha= ((float)(virtual_scan.admisbale_space[i].start - half_scan_num ) )/half_scan_num *Pi;
+        temp = cos(alpha);
+         start_x =virtual_scan.admisbale_space[i].arch_radius*temp;
+         temp = sin(alpha);
+        start_y =virtual_scan.admisbale_space[i].arch_radius*temp;
+        alpha = ((float)(virtual_scan.admisbale_space[i].middle- half_scan_num )) /half_scan_num *Pi;
+       temp = cos(alpha);
+        middle_x =virtual_scan.admisbale_space[i].arch_radius* temp;
+        temp = sin(alpha);
+        middle_y =virtual_scan.admisbale_space[i].arch_radius*temp;
+        alpha = ((float)(virtual_scan.admisbale_space[i].end - half_scan_num)) /half_scan_num *Pi;
+        temp = cos(alpha);
+        end_x =virtual_scan.admisbale_space[i].arch_radius* temp;
+        temp = sin(alpha);
+        end_y =virtual_scan.admisbale_space[i].arch_radius* temp;
+
+        start_x +=virtual_scan.senser_pose.x();
+        start_y +=virtual_scan.senser_pose.y();
+        middle_x +=virtual_scan.senser_pose.x();
+        middle_y +=virtual_scan.senser_pose.y();
+        end_x +=virtual_scan.senser_pose.x();
+        end_y +=virtual_scan.senser_pose.y();
+        admissable_space_display->appendLine(start_x,start_y,0.1,middle_x,middle_y,0.1);
+        admissable_space_display->setColorG(0.5);
+        admissable_space_display->setColorB(0.5);
+        admissable_space_display->setColorR(0.7);
+        admissable_space_display->appendLine(middle_x,middle_y,0.1,end_x,end_y,0.1);
+        admissable_space_display->setColorG(0.5);
+        admissable_space_display->setColorB(0.5);
+        admissable_space_display->setColorR(0.7);
+    }
+    scene->insert(admissable_space_display);
+}
+
+void display_data_type::insert_admissable_space(std::vector<admissable_space_type> space,mrpt::utils::TColorf color,mrpt::poses::CPose3D sensor)
+{
+    int i=0;
+    admissable_space_display = mrpt::opengl::CSetOfLines::Create();
+    float start_x,start_y,middle_x,middle_y,end_x,end_y;
+    float alpha=0.0;
+    float temp =0.0;
+    for(i=0;i<space.size();i++)
+    {
+        start_x = start_y = middle_x= middle_y=end_x = end_y =0.0;
+         alpha= ((float)(space[i].start - half_scan_num ) )/half_scan_num *Pi;
+        temp = cos(alpha);
+         start_x =space[i].arch_radius*temp;
+         temp = sin(alpha);
+        start_y =space[i].arch_radius*temp;
+        alpha = ((float)(space[i].middle- half_scan_num )) /half_scan_num *Pi;
+       temp = cos(alpha);
+        middle_x =space[i].arch_radius* temp;
+        temp = sin(alpha);
+        middle_y =space[i].arch_radius*temp;
+        alpha = ((float)(space[i].end - half_scan_num)) /half_scan_num *Pi;
+        temp = cos(alpha);
+        end_x =space[i].arch_radius* temp;
+        temp = sin(alpha);
+        end_y =space[i].arch_radius* temp;
+
+        start_x +=sensor.x();
+        start_y +=sensor.y();
+        middle_x +=sensor.x();
+        middle_y +=sensor.y();
+        end_x +=sensor.x();
+        end_y +=sensor.y();
+
+        admissable_space_display->appendLine(start_x,start_y,0.15,middle_x,middle_y,0.15);
+        admissable_space_display->setColorG(color.G);
+        admissable_space_display->setColorB(color.B);
+        admissable_space_display->setColorR(color.R);
+        admissable_space_display->appendLine(middle_x,middle_y,0.15,end_x,end_y,0.15);
+        admissable_space_display->setColorG(color.G);
+        admissable_space_display->setColorB(color.B);
+        admissable_space_display->setColorR(color.R);
+    }
+    scene->insert(admissable_space_display);
+}
+void display_data_type::insert_admissable_space(std::vector<admissable_space_type> space,mrpt::poses::CPose3D sensor)
+{
+    int i=0;
+    admissable_space_display = mrpt::opengl::CSetOfLines::Create();
+    float start_x,start_y,middle_x,middle_y,end_x,end_y;
+    float alpha=0.0;
+    float temp =0.0;
+    for(i=0;i<space.size();i++)
+    {
+        start_x = start_y = middle_x= middle_y=end_x = end_y =0.0;
+         alpha= ((float)(space[i].start - half_scan_num ) )/half_scan_num *Pi;
+        temp = cos(alpha);
+         start_x =space[i].arch_radius*temp;
+         temp = sin(alpha);
+        start_y =space[i].arch_radius*temp;
+        alpha = ((float)(space[i].middle- half_scan_num )) /half_scan_num *Pi;
+       temp = cos(alpha);
+        middle_x =space[i].arch_radius* temp;
+        temp = sin(alpha);
+        middle_y =space[i].arch_radius*temp;
+        alpha = ((float)(space[i].end - half_scan_num)) /half_scan_num *Pi;
+        temp = cos(alpha);
+        end_x =space[i].arch_radius* temp;
+        temp = sin(alpha);
+        end_y =space[i].arch_radius* temp;
+
+        start_x +=sensor.x();
+        start_y +=sensor.y();
+        middle_x +=sensor.x();
+        middle_y +=sensor.y();
+        end_x +=sensor.x();
+        end_y +=sensor.y();
+        admissable_space_display->appendLine(start_x,start_y,0.2,middle_x,middle_y,0.2);
+        admissable_space_display->setColorG(0);
+        admissable_space_display->setColorB(0);
+        admissable_space_display->setColorR(1);
+        admissable_space_display->appendLine(middle_x,middle_y,0.2,end_x,end_y,0.2);
+        admissable_space_display->setColorG(00);
+        admissable_space_display->setColorB(00);
+        admissable_space_display->setColorR(1);
+    }
+    scene->insert(admissable_space_display);
+}
+void display_data_type::insert_all_obj()
+{
+    //    scene = mrpt::opengl::COpenGLScene::Create();
+    //    clear_scene();
+
+    insert_gridmap_local();
+//    insert_scan_result();
+    insert_grid();
+//    insert_suvModel();
+    insert_scan_center_arrow();
+//    insert_axis();
+//    if(virtual_scan.is_intesection())
+    {
+        insert_admissable_space(virtual_scan.car_based_admisbale_space,mrpt::utils::TColorf(1,0,0),virtual_scan.curRobotPoseEst);//是路口就显示可行域
+        insert_admissable_space(virtual_scan.car_based_admisbale_space_filtered,mrpt::utils::TColorf(0.5, 0.6, 0,0.5),virtual_scan.curRobotPoseEst);//是路口就显示可行域
+    }
+//
+}
+void display_data_type::refresh_3Ddisplay()
+{
+    mrpt::opengl::COpenGLScenePtr &ptrScene = win3D.get3DSceneAndLock();
+    ptrScene = scene;
+    win3D.unlockAccess3DScene();
+    win3D.forceRepaint();
+}
+void display_data_type::refresh_2Ddisplay()
+{
+//    win2D.plot(virtual_scan.virtual_scan_result,"b-");
+}
+void display_data_type::clear_scene()
+{
+
+}
