@@ -1,0 +1,8 @@
+//
+// Created by hl on 18-1-19.
+//
+
+#ifndef PROJECT_GPS_IMU_CONSTRAINT_H
+#define PROJECT_GPS_IMU_CONSTRAINT_H
+
+#endif //PROJECT_GPS_IMU_CONSTRAINT_H
